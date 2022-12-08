@@ -6,7 +6,7 @@ on:
       applications:
         description: '源码版本'
         required: true
-        default: '18.06'
+        default: 'x86_64'
         
   release:
     types:
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
+        inputs:
           - x86_64
 
     steps:
