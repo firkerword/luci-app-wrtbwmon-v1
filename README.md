@@ -1,1 +1,1 @@
-openwrt-applications
+# openwrt-applications  X86-64
