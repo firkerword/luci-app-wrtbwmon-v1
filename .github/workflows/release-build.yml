@@ -3,8 +3,11 @@ name: Build
 on:
   workflow_dispatch:
     inputs:
-      ssh:
-        description: '开始工作'
+      applications:
+        description: '源码版本'
+        required: true
+        default: '18.06'
+        
   release:
     types:
       - published
@@ -12,7 +15,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.arch }}
+    name: Build ${{ matrix.inputs }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,9 +29,9 @@ jobs:
           fetch-depth: 0
 
       - name: Building packages
-        uses: sbwml/openwrt-gh-action-sdk@master
+        uses: openwrt/openwrt-gh-action-sdk@master
         env:
-          ARCH: ${{ matrix.arch }}-openwrt-21.02
+          ARCH: ${{ matrix.inputs }}
           FEEDNAME: packages_ci
           PACKAGES: luci-app-wrtbwmon-v1
           NO_REFRESH_CHECK: true
@@ -36,13 +39,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.arch }}
-          path: bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
+          name: ${{ matrix.inputsh }}
+          path: bin/packages/${{ matrix.inputs }}/packages_ci/*.ipk
 
-      - name: Upload packages
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.workflow_token }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "bin/packages/${{ matrix.arch }}/packages_ci/*.ipk"
