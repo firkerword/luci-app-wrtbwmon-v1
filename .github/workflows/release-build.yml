@@ -1,26 +1,18 @@
 name: Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      applications:
-        description: '源码版本'
-        required: true
-        default: 'x86_64'
-        
   release:
     types:
       - published
-      
 
 jobs:
   build:
-    name: Build ${{ matrix.inputs }}
+    name: Build ${{ matrix.arch }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        inputs:
+        arch:
           - x86_64
 
     steps:
@@ -28,6 +20,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get v2ray-geodata
+        run: |
+          git clone https://github.com/sbwml/v2ray-geodata
       - name: Building packages
         uses: sbwml/openwrt-gh-action-sdk@master
         env:
@@ -39,6 +34,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.inputsh }}
-          path: bin/packages/${{ matrix.inputs }}/packages_ci/*.ipk
-
+          name: ${{ matrix.arch }}
+          path: bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
