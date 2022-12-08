@@ -1,9 +1,17 @@
 name: Build
 
 on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      applications:
+        description: 'build applications, eg: "luci-app-wrtbwmon-v1". "all" means build all'
+        required: true
+        default: ''
   release:
     types:
       - published
+      
 
 jobs:
   build:
@@ -25,7 +33,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}-openwrt-21.02
           FEEDNAME: packages_ci
-          PACKAGES: luci-app-wrtbwmon-v1
+          PACKAGES: ${{ matrix.inputs }}
           NO_REFRESH_CHECK: true
 
       - name: Upload artifacts
