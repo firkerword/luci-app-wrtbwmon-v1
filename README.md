@@ -1,1 +1,1 @@
-# luci-app-wrtbwmon-v1
+openwrt-applications
