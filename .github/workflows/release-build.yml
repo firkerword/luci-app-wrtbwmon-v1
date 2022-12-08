@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       applications:
-        description: 'build applications, eg: "luci-app-wrtbwmon-v1". "all" means build all'
+        description: 'build applications, eg: "luci-app-name". "all" means build all'
         required: true
         default: ''
   release:
