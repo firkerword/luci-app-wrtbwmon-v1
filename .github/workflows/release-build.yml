@@ -29,9 +29,9 @@ jobs:
           fetch-depth: 0
 
       - name: Building packages
-        uses: openwrt/openwrt-gh-action-sdk@master
+        uses: sbwml/openwrt-gh-action-sdk@master
         env:
-          ARCH: ${{ matrix.inputs }}
+          ARCH: ${{ matrix.arch }}-openwrt-21.02
           FEEDNAME: packages_ci
           PACKAGES: luci-app-wrtbwmon-v1
           NO_REFRESH_CHECK: true
