@@ -9,8 +9,8 @@ LUCI_TITLE:=A Luci module that uses wrtbwmon to track bandwidth usage
 LUCI_DEPENDS:=+wrtbwmon
 LUCI_PKGARCH:=all
 
-PKG_NAME:=luci-app-wrtbwmon
-PKG_VERSION:=v1.6.3-0926-20220104
+PKG_NAME:=luci-app-wrtbwmon-zh
+PKG_VERSION:=v1.6.3-20221210
 PKG_RELEASE:=1
 
 include $(TOPDIR)/feeds/luci/luci.mk
