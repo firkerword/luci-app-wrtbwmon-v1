@@ -1,4 +1,5 @@
 #!/bin/sh
+#
 
 # Default input parameters for wrtbwmon.
 runMode=0
@@ -167,13 +168,13 @@ newChain() {
 	local ipt=$2
 	# Create the RRDIPT_$chain chain (it doesn't matter if it already exists).
 
-	$ipt -w -t mangle -N RRDIPT_$chain 2> /dev/null
+	$ipt -t mangle -N RRDIPT_$chain 2> /dev/null
 
 	# Add the RRDIPT_$chain CHAIN to the $chain chain if not present
-	$ipt -w -t mangle -C $chain -j RRDIPT_$chain 2>/dev/null
+	$ipt -t mangle -C $chain -j RRDIPT_$chain 2>/dev/null
 	if [ $? -ne 0 ]; then
 		[ -n "$DEBUG" ] && echo "DEBUG: $ipt chain misplaced, recreating it..."
-		$ipt -w -t mangle -I $chain -j RRDIPT_$chain
+		$ipt -t mangle -I $chain -j RRDIPT_$chain
 	fi
 }
 
@@ -185,9 +186,9 @@ newRuleIF() {
 	local cmd=
 
 	if [ "$chain" = "OUTPUT" ]; then
-		cmd="$ipt -w -t mangle -o $IF -j RETURN"
+		cmd="$ipt -t mangle -o $IF -j RETURN"
 	elif [ "$chain" = "INPUT" ]; then
-		cmd="$ipt -w -t mangle -i $IF -j RETURN"
+		cmd="$ipt -t mangle -i $IF -j RETURN"
 	fi
 	[ -n "$cmd" ] && eval $cmd " -C RRDIPT_$chain 2>/dev/null" || eval $cmd " -A RRDIPT_$chain"
 }
@@ -205,7 +206,8 @@ publish() {
 	while IFS=, read PEAKUSAGE_IN MAC IP IFACE SPEED_IN SPEED_OUT PEAKUSAGE_OUT TOTAL FIRSTSEEN LASTSEEN
 	do
 		echo "
-new Array(\"$(lookup $MAC $IP $user_def)\",\"$MAC\",\"$IP\",$SPEED_IN,$SPEED_OUT,$PEAKUSAGE_IN,$PEAKUSAGE_OUT,$TOTAL,\"$FIRSTSEEN\",\"$LASTSEEN\")," >> $htmPage
+new Array(\"$(lookup $MAC $IP $user_def)\",\"$MAC\",\"$IP\",$SPEED_IN,$SPEED_OUT,
+$PEAKUSAGE_IN,$PEAKUSAGE_OUT,$TOTAL,\"$FIRSTSEEN\",\"$LASTSEEN\")," >> $htmPage
 	done < $tmpDir/sorted_${updatePID}.tmp
 	echo "0);" >> $htmPage
 
@@ -274,7 +276,7 @@ update() {
 		> $tmpDir/${ii}_${updatePID}.tmp
 
 		for chain in $chains; do
-			$ii -w -nvxL RRDIPT_$chain -t mangle -Z >> $tmpDir/${ii}_${updatePID}.tmp
+			$ii -nvxL RRDIPT_$chain -t mangle -Z >> $tmpDir/${ii}_${updatePID}.tmp
 		done
 	done
 

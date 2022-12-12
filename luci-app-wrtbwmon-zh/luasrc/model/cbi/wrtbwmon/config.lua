@@ -1,33 +1,48 @@
-local m = Map("wrtbwmon", "流量统计 - 配置")
+local lastvalue
+local cursor = luci.model.uci.cursor()
+local m, s, o
+m = Map("wrtbwmon", translate("Usage - Configuration"))
 
-local s = m:section(NamedSection, "general", "wrtbwmon", "常规选项")
+s = m:section(NamedSection, "general", "wrtbwmon", translate("General settings"))
 
-local enabled = s:option(Flag, "enabled", translate("Enable"),  translate("禁用后需要重启系统才会真正停止运行。"))
-enabled.rmempty = false
+o = s:option(Flag, "enabled", translate("Enabled"))
+o.rmempty= true
 
-bandwidth = s:option( Value, "bandwidth", translate("默认带宽"), translate("用于统计流量占用比率，单位为MB（并非电信商表示的“兆”）。"))
-bandwidth:value("1M")
-bandwidth:value("20M")
-bandwidth:value("100M")
-bandwidth:value("200M")
-bandwidth:value("500M")
-bandwidth:value("1000M")
-bandwidth.default = '1M'
+o = s:option(Value, "path", translate("Database Path"),
+	translate("This box is used to select the Database path, "
+	.. "which is /tmp/usage.db by default."))
+o:value("/tmp/usage.db")
+o:value("/etc/usage.db")
+o.rmempty= false
 
-local persist = s:option(Flag, "persist", "可保留数据",  "启用本项可将统计数据保存至 /etc/config 目录，即使固件更新后依然可以保留原有数据。")
-persist.rmempty = false
-function persist.write(self, section, value)
-    if value == '1' and nixio.fs.access("/tmp/usage.db") then
-        luci.sys.call("/etc/init.d/wrtbwmon stop ; mv /tmp/usage.*db /etc/config/ 2>/dev/null ; uci -q set wrtbwmon.general.path='/etc/config/usage.db' ; uci commit wrtbwmon ; /etc/init.d/wrtbwmon start")
-    elseif value == '0' and nixio.fs.access("/etc/config/usage.db") then
-        luci.sys.call("/etc/init.d/wrtbwmon stop ; mv /etc/config/usage.*db /tmp/ 2>/dev/null ; uci -q set wrtbwmon.general.path='/tmp/usage.db' ; uci commit wrtbwmon ; /etc/init.d/wrtbwmon start")
-    end
-    return Flag.write(self, section ,value)
+function m.on_parse(self)
+	lastvalue = cursor:get("wrtbwmon", "general", "path")
 end
 
-local resetdata = s:option(Flag, "resetdata", "每天重新计数",  "启用本项会在00:00定时重置数据然后重新开始计数（如“可保留数据”启用此功能即失效）。")
-resetdata:depends("persist", 0)
-resetdata.rmempty = true
+function o.write(self,section,value)
+	local fpath = nixio.fs.dirname(value) .. "/"
+
+	if not nixio.fs.access(fpath) then
+		if not nixio.fs.mkdirr(fpath) then
+			return Value.write(self, section, lastvalue)
+		end
+	end
+
+	io.popen("/etc/init.d/wrtbwmon stop")
+	io.popen("mv -f " .. fileRename(lastvalue, "*") .. " ".. fpath)
+	Value.write(self,section,value)
+	io.popen("/etc/init.d/wrtbwmon start")
+
+	return true
+end
+
+function fileRename(fileName, tag)
+	local idx = fileName:match(".+()%.%w+$")
+	if(idx) then
+		return fileName:sub(1, idx-1) .. tag .. fileName:sub(idx, -1)
+	else
+		return fileName .. tag
+	end
+end
 
 return m
-
